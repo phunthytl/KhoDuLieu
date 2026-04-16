@@ -7,8 +7,10 @@ pip install -r requirements.txt
 ```
 
 # 2. SSAS
-Cài đặt SSAS
-Kết nối tới SSAS máy đang có dữ liệu hoặc restore file abf 
+Cài đặt SSAS:
+    Data Source=localhost\\KDL;
+    Initial Catalog=DW;
+Kết nối tới SSAS máy đang có dữ liệu hoặc restore file abf ()
 
 ## 3. Chạy web
 ```bash
