@@ -7,19 +7,11 @@ pip install -r requirements.txt
 ```
 *(Yêu cầu Windows OS vì thư viện kết nối `pywin32` và `adodbapi` phụ thuộc vào ADO/OLE DB Provider của Microsoft).*
 
-# 2. Tạo Dữ Liệu Demo
-Tạo CSDL với các bảng Dim, Fact
-Sửa server và database rồi chạy:
-```bash
-python create_data.py
-```
-để sinh dữ liệu
+# 2. SSAS
+Cài đặt SSAS
+Kết nối tới SSAS máy đang có dữ liệu hoặc restore file abf 
 
-# 3. Tạo cube và dimension
-Sử dụng Visual Studio để cài đặt khối `DoanhThuBanHang` và 4 bảng Dimensions tương ứng.
-Sau khi cài đặt xong Deploy lên SQL server
-
-## 4. Chạy Ứng Dụng Dashboard Phân Tích
+## 3. Chạy web
 ```bash
 python app.py
 ```
