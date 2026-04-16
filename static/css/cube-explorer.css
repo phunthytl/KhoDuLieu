@@ -1,0 +1,222 @@
+/* ── OLAP Cube Explorer — Page-specific styles ─────────────── */
+
+/* Main layout: chart area + side panel */
+.olap-layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: var(--s-20);
+    align-items: start;
+}
+
+@media (max-width: 1100px) {
+    .olap-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ── Breadcrumb OLAP path ─────────────────────────────────── */
+.olap-path {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    padding: 10px var(--s-20);
+    background: var(--c-primary-l);
+    border-bottom: 1px solid #bae6fd;
+    flex-wrap: wrap;
+}
+
+.olap-path .crumb {
+    color: var(--c-primary);
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity .15s;
+}
+
+.olap-path .crumb:hover {
+    opacity: .7;
+}
+
+.olap-path .sep {
+    color: #94a3b8;
+    font-size: 1rem;
+}
+
+.olap-path .active-crumb {
+    color: var(--c-text-2);
+    font-weight: 600;
+}
+
+.olap-path .op-badge {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* ── OLAP operation badges ───────────────────────────────── */
+.badge {
+    font-size: .7rem;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.badge-drill  { background: #d1fae5; color: #065f46; }
+.badge-rollup { background: #dbeafe; color: #1e40af; }
+.badge-slice  { background: #fef9c3; color: #854d0e; }
+.badge-topn   { background: #fce7f3; color: #9d174d; }
+.badge-time   { background: #ede9fe; color: #4c1d95; }
+
+/* ── Side panel ──────────────────────────────────────────── */
+.olap-side {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-16);
+}
+
+.side-card {
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.side-card-header {
+    padding: 10px var(--s-16);
+    background: var(--c-surface-2);
+    border-bottom: 1px solid var(--c-border);
+    font-size: .8rem;
+    font-weight: 700;
+    color: var(--c-text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.side-card-body {
+    padding: var(--s-12) var(--s-16);
+}
+
+.side-card-body .form-group {
+    margin-bottom: var(--s-12);
+}
+
+.side-card-body label {
+    display: block;
+    font-size: .75rem;
+    font-weight: 600;
+    color: var(--c-text-2);
+    margin-bottom: 5px;
+}
+
+.side-card-body select,
+.side-card-body input {
+    width: 100%;
+    padding: 7px 10px;
+    border: 1.5px solid var(--c-border);
+    border-radius: var(--r-sm);
+    font-size: .8rem;
+    font-family: inherit;
+    color: var(--c-text);
+    background: var(--c-surface);
+}
+
+/* ── Action buttons ──────────────────────────────────────── */
+.action-btn {
+    width: 100%;
+    padding: 9px;
+    border: none;
+    border-radius: var(--r-sm);
+    font-size: .8rem;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    transition: all .15s;
+}
+
+.action-btn + .action-btn {
+    margin-top: 7px;
+}
+
+.action-btn.primary {
+    background: linear-gradient(135deg, var(--c-primary), var(--c-accent));
+    color: #fff;
+}
+
+.action-btn.secondary {
+    background: var(--c-surface-2);
+    border: 1.5px solid var(--c-border);
+    color: var(--c-text-2);
+}
+
+.action-btn.danger {
+    background: #fef2f2;
+    border: 1.5px solid #fca5a5;
+    color: #991b1b;
+}
+
+.action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.action-btn:active {
+    transform: none;
+}
+
+/* ── Method tabs ─────────────────────────────────────────── */
+.method-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: var(--s-16);
+}
+
+.method-tab {
+    padding: 6px 12px;
+    border: 1.5px solid var(--c-border);
+    border-radius: 20px;
+    font-size: .75rem;
+    font-weight: 700;
+    cursor: pointer;
+    background: var(--c-surface);
+    color: var(--c-text-2);
+    transition: all .15s;
+}
+
+.method-tab.active {
+    background: var(--c-primary);
+    border-color: var(--c-primary);
+    color: #fff;
+}
+
+/* ── Chart hint bar ──────────────────────────────────────── */
+.chart-hint {
+    font-size: .72rem;
+    color: var(--c-text-3);
+    padding: 6px var(--s-20);
+    border-bottom: 1px solid var(--c-border);
+    background: var(--c-surface-2);
+}
+
+/* ── Bottom row: Time Series + Top-N ────────────────────── */
+.second-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--s-20);
+    margin-top: var(--s-20);
+}
+
+@media (max-width: 900px) {
+    .second-row {
+        grid-template-columns: 1fr;
+    }
+}
