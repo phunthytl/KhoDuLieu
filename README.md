@@ -5,7 +5,6 @@ Cài đặt các thư viện Python cần thiết:
 ```bash
 pip install -r requirements.txt
 ```
-*(Yêu cầu Windows OS vì thư viện kết nối `pywin32` và `adodbapi` phụ thuộc vào ADO/OLE DB Provider của Microsoft).*
 
 # 2. SSAS
 Cài đặt SSAS
