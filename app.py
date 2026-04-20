@@ -24,13 +24,10 @@ def pivot_query():
     try:
         params = request.get_json(force=True) or {}
         # Payload bao gồm: xAxis, xLevelIdx, legend, legendLevelIdx, measure, filters
-        data = pivot_engine.build_dynamic_mdx(params)
-        return jsonify({'success': True, 'data': data})
+        data, mdx = pivot_engine.build_dynamic_mdx(params)
+        return jsonify({'success': True, 'data': data, 'mdx': mdx})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
-
-
-
 
 
 # ==================== ERROR HANDLERS ====================

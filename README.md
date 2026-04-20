@@ -6,13 +6,7 @@ Cài đặt các thư viện Python cần thiết:
 pip install -r requirements.txt
 ```
 
-# 2. SSAS
-Cài đặt SSAS:
-    Data Source=localhost\\KDL;
-    Initial Catalog=DW;
-Kết nối tới SSAS máy đang có dữ liệu hoặc restore file abf ()
-
-## 3. Chạy web
+## 2. Chạy web
 ```bash
 python app.py
 ```
