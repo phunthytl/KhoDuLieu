@@ -31,29 +31,42 @@ class PivotEngine:
         dim_x = self.DIMENSIONS[x_axis]
         lvl_x_name = dim_x["levels"][x_level]
 
-        # 1. XÂY DỰNG TRỤC X
-        parent_path = ""
-        x_dim_filters = filters.get(x_axis, {})
-        if x_level > 0:
-            path_parts = []
-            for i in range(x_level):
-                lvl_n = dim_x["levels"][i]
-                val = x_dim_filters.get(lvl_n)
+        def get_parent_path(dim_id, level_idx):
+            dim_cfg = self.DIMENSIONS[dim_id]
+            dim_filters = filters.get(dim_id, {})
+            if level_idx > 0:
+                deepest_lvl = dim_cfg["levels"][level_idx - 1]
+                val = dim_filters.get(deepest_lvl)
                 if val:
-                    if i == 0: path_parts.append(f"[{lvl_n}].&[{val}]")
-                    else: path_parts.append(f"[{val}]")
-            if path_parts: parent_path = ".".join(path_parts)
+                    if isinstance(val, list): val = val[0] # Chỉ lấy 1 giá trị khi drill-down
+                    composite_key = ""
+                    if dim_id == 'thoigian':
+                        nam = dim_filters.get('Nam', '')
+                        if isinstance(nam, list): nam = nam[0]
+                        quy = dim_filters.get('Quy', '')
+                        if isinstance(quy, list): quy = quy[0]
+                        thang = dim_filters.get('Thang', '')
+                        if isinstance(thang, list): thang = thang[0]
+                        
+                        if deepest_lvl == 'Nam': composite_key = f"&[{nam}]"
+                        elif deepest_lvl == 'Quy': composite_key = f"&[{nam}]&[{quy}]"
+                        elif deepest_lvl == 'Thang': composite_key = f"&[{thang}]&[{quy}]&[{nam}]"
+                    else:
+                        composite_key = f"&[{val}]"
+                    return f"[{deepest_lvl}].{composite_key}"
+            return ""
 
-        # 1. XÂY DỰNG TRỤC X (X-AXIS) - Giới hạn TopCount để biểu đồ đẹp hơn
-        top_n = 50
-        if x_axis == 'mathang': top_n = 30
-        elif x_axis == 'khachhang': top_n = 50
-        elif x_axis == 'thoigian': top_n = 100 # Thời gian thì cho hiện nhiều hơn
+        # 1. XÂY DỰNG TRỤC X
+        dim_x = self.DIMENSIONS[x_axis]
+        lvl_x_name = dim_x["levels"][x_level]
+        top_x = 30 if x_axis == 'mathang' else 50
+        if x_axis == 'thoigian': top_x = 100
         
-        if parent_path:
-            x_set = f"TOPCOUNT({{ [{dim_x['name']}].[{dim_x['hier']}].{parent_path}.CHILDREN }}, {top_n}, {measure_expr})"
+        x_parent_path = get_parent_path(x_axis, x_level)
+        if x_parent_path:
+            x_set = f"TOPCOUNT({{ [{dim_x['name']}].[{dim_x['hier']}].{x_parent_path}.CHILDREN }}, {top_x}, {measure_expr})"
         else:
-            x_set = f"TOPCOUNT(DESCENDANTS([{dim_x['name']}].[{dim_x['hier']}], [{dim_x['name']}].[{dim_x['hier']}].[{lvl_x_name}]), {top_n}, {measure_expr})"
+            x_set = f"TOPCOUNT(DESCENDANTS([{dim_x['name']}].[{dim_x['hier']}], [{dim_x['name']}].[{dim_x['hier']}].[{lvl_x_name}]), {top_x}, {measure_expr})"
 
         # 2. XÂY DỰNG TRỤC ROWS (LEGEND & Z)
         active_sets = [x_set]
@@ -63,14 +76,22 @@ class PivotEngine:
             dim_leg = self.DIMENSIONS[legend]
             lvl_leg = dim_leg['levels'][legend_level]
             top_leg = 30 if legend == 'mathang' else 50
-            active_sets.append(f"TOPCOUNT(DESCENDANTS([{dim_leg['name']}].[{dim_leg['hier']}], [{dim_leg['name']}].[{dim_leg['hier']}].[{lvl_leg}]), {top_leg}, {measure_expr})")
+            leg_parent_path = get_parent_path(legend, legend_level)
+            if leg_parent_path:
+                active_sets.append(f"TOPCOUNT({{ [{dim_leg['name']}].[{dim_leg['hier']}].{leg_parent_path}.CHILDREN }}, {top_leg}, {measure_expr})")
+            else:
+                active_sets.append(f"TOPCOUNT(DESCENDANTS([{dim_leg['name']}].[{dim_leg['hier']}], [{dim_leg['name']}].[{dim_leg['hier']}].[{lvl_leg}]), {top_leg}, {measure_expr})")
             used_dims.add(legend)
         
         if z_axis and z_axis in self.DIMENSIONS and z_axis not in used_dims:
             dim_z = self.DIMENSIONS[z_axis]
             lvl_z = dim_z['levels'][z_level]
             top_z = 30 if z_axis == 'mathang' else 50
-            active_sets.append(f"TOPCOUNT(DESCENDANTS([{dim_z['name']}].[{dim_z['hier']}], [{dim_z['name']}].[{dim_z['hier']}].[{lvl_z}]), {top_z}, {measure_expr})")
+            z_parent_path = get_parent_path(z_axis, z_level)
+            if z_parent_path:
+                active_sets.append(f"TOPCOUNT({{ [{dim_z['name']}].[{dim_z['hier']}].{z_parent_path}.CHILDREN }}, {top_z}, {measure_expr})")
+            else:
+                active_sets.append(f"TOPCOUNT(DESCENDANTS([{dim_z['name']}].[{dim_z['hier']}], [{dim_z['name']}].[{dim_z['hier']}].[{lvl_z}]), {top_z}, {measure_expr})")
             used_dims.add(z_axis)
 
         rows_expr = " * ".join(active_sets)
@@ -90,31 +111,46 @@ class PivotEngine:
                 if f_dict.get(l_name): deepest_lvl = l_name
             
             if deepest_lvl:
-                composite_key = ""
+                val = f_dict[deepest_lvl]
+                if not val: continue
+                
+                def build_member_paths(lvl_name, value_list, parent_suffix=""):
+                    v_list = value_list if isinstance(value_list, list) else [value_list]
+                    return [f"[{d_cfg['name']}].[{d_cfg['hier']}].[{lvl_name}].&[{v}]{parent_suffix}" for v in v_list]
+                
+                paths = []
                 if d_id == 'thoigian':
                     nam = f_dict.get('Nam', '')
                     quy = f_dict.get('Quy', '')
                     thang = f_dict.get('Thang', '')
-                    if deepest_lvl == 'Nam': composite_key = f"&[{nam}]"
-                    elif deepest_lvl == 'Quy': composite_key = f"&[{nam}]&[{quy}]"
-                    elif deepest_lvl == 'Thang': composite_key = f"&[{thang}]&[{quy}]&[{nam}]"
+                    
+                    nam_str = nam[0] if isinstance(nam, list) else nam
+                    quy_str = quy[0] if isinstance(quy, list) else quy
+                    
+                    if deepest_lvl == 'Nam': 
+                        paths = build_member_paths('Nam', nam)
+                    elif deepest_lvl == 'Quy': 
+                        paths = build_member_paths('Quy', quy, f"&[{nam_str}]")
+                    elif deepest_lvl == 'Thang': 
+                        paths = build_member_paths('Thang', thang, f"&[{quy_str}]&[{nam_str}]")
                 else:
-                    composite_key = f"&[{f_dict[deepest_lvl]}]"
+                    paths = build_member_paths(deepest_lvl, val)
                 
-                if composite_key:
-                    member_path = f"[{d_cfg['name']}].[{d_cfg['hier']}].[{deepest_lvl}].{composite_key}"
-                    total_slicers.append(member_path)
-                    if d_id not in used_dims:
-                        main_slicers.append(member_path)
+                if not paths: continue
+                
+                slicer_expr = paths[0] if len(paths) == 1 else "{ " + ", ".join(paths) + " }"
+                
+                total_slicers.append(slicer_expr)
+                main_slicers.append(slicer_expr)
         
         # 4. TẠO FROM CLAUSE
         from_main = f"[{self.CUBE_NAME}]"
         for s in main_slicers:
             from_main = f"(SELECT ({s}) ON 0 FROM {from_main})"
             
-        where_clause = ""
-        if total_slicers:
-            where_clause = f"WHERE ({', '.join(total_slicers)})"
+        from_summary = f"[{self.CUBE_NAME}]"
+        for s in total_slicers:
+            from_summary = f"(SELECT ({s}) ON 0 FROM {from_summary})"
 
         # 5. TẠO CÂU LỆNH MDX CHÍNH
         mdx_main = f"SELECT NON EMPTY {cols_expr} ON COLUMNS, NON EMPTY {{ {rows_expr} }} ON ROWS FROM {from_main}"
@@ -123,7 +159,7 @@ class PivotEngine:
         main_rows = self.svc.execute_mdx(mdx_main) or []
         
         # 6. TRUY VẤN SUMMARY (KPIs)
-        mdx_summary = f"SELECT {{[Measures].[TongTien], [Measures].[TongSoLuongHang]}} ON 0 FROM [{self.CUBE_NAME}] {where_clause}"
+        mdx_summary = f"SELECT {{[Measures].[TongTien], [Measures].[TongSoLuongHang]}} ON 0 FROM {from_summary}"
         print(f"DEBUG SUMMARY MDX: {mdx_summary}")
         summary_rows = self.svc.execute_mdx(mdx_summary) or []
         summary_data = {"tongtien": 0, "soluong": 0}

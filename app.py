@@ -29,7 +29,6 @@ def pivot_query():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-
 # ==================== ERROR HANDLERS ====================
 @app.errorhandler(404)
 def not_found(error):

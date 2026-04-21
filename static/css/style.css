@@ -138,6 +138,56 @@ body {
 
 .filter-group select:focus { border-color: var(--primary); background: #f8fafc; }
 
+/* Custom Dropdown Checkbox */
+.custom-dropdown {
+    position: relative;
+    width: 100%;
+}
+.dropdown-header {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text-main);
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.dropdown-header:hover {
+    border-color: var(--primary);
+}
+.dropdown-list {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-top: none;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 100;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+.dropdown-list.active {
+    display: block;
+}
+.dropdown-item {
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+.dropdown-item:hover {
+    background: #f1f5f9;
+}
+
 /* Chart Section */
 .chart-area-container {
     display: grid;
